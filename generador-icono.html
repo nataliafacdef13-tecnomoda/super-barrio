@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<!-- Generador de iconos para Súper Barrio: HTML, CSS y JS en un solo archivo -->
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Generador de iconos</title>
+
+  <style>
+    /* Colores y medidas (mismos de la app) */
+    :root {
+      --color-principal: #D99A00;
+      --color-principal-oscuro: #B07C00;
+      --color-fondo: #F5F6F7;
+      --color-tarjeta: #FFFFFF;
+      --color-texto: #1F2933;
+      --color-texto-suave: #6B7280;
+      --color-borde: #E5E7EB;
+      --sombra-suave: 0 2px 8px rgba(31, 41, 51, 0.08);
+      --sombra-elevada: 0 6px 16px rgba(31, 41, 51, 0.16);
+      --radio: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+    }
+
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: var(--color-fondo);
+      color: var(--color-texto);
+      line-height: 1.5;
+      padding: 1rem;
+      overflow-x: hidden;
+    }
+
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-family: Poppins, system-ui, sans-serif;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Tarjetas: controles y vistas previas */
+    .tarjeta {
+      background: var(--color-tarjeta);
+      border-radius: var(--radio);
+      box-shadow: var(--sombra-suave);
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* Controles: una columna en celular, dos desde 600 px */
+    .controles {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-texto-suave);
+    }
+
+    input {
+      font-family: inherit;
+      font-size: 1rem;
+      width: 100%;
+      min-height: 44px;
+      padding: 0.4rem 0.75rem;
+      border: 1px solid var(--color-borde);
+      border-radius: 10px;
+      background: #FFFFFF;
+    }
+
+    input:focus {
+      outline: 2px solid var(--color-principal);
+      border-color: var(--color-principal);
+    }
+
+    #campo-emoji {
+      font-size: 1.5rem;
+      text-align: center;
+    }
+
+    #selector-color {
+      padding: 0.25rem;
+      cursor: pointer;
+    }
+
+    /* Vistas previas */
+    .vistas {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 1.5rem;
+    }
+
+    .vista {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-width: 100%;
+    }
+
+    .vista h2 {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    /* Fondo de cuadritos para que se vean las esquinas redondeadas transparentes */
+    .marco {
+      display: inline-block;
+      line-height: 0;
+      border-radius: var(--radio);
+      background:
+        conic-gradient(#E5E7EB 25%, #FFFFFF 0 50%, #E5E7EB 0 75%, #FFFFFF 0)
+        0 0 / 16px 16px;
+      max-width: 100%;
+    }
+
+    /* El lienzo mantiene su tamaño real, pero se achica en pantallas angostas */
+    canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Botones */
+    .botones {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      min-height: 44px;
+      padding: 0.6rem 1.1rem;
+      border: none;
+      border-radius: 10px;
+      background: var(--color-principal);
+      color: var(--color-texto);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      background: var(--color-principal-oscuro);
+      color: #FFFFFF;
+      transform: translateY(-2px);
+      box-shadow: var(--sombra-elevada);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    @media (min-width: 600px) {
+      .controles {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>🎨 Generador de iconos</h1>
+
+    <!-- Controles: emoji y color de fondo -->
+    <section class="tarjeta">
+      <div class="controles">
+        <label>Emoji
+          <input type="text" id="campo-emoji" value="🛒" autocomplete="off">
+        </label>
+
+        <label>Color de fondo <span id="texto-color">#2F80ED</span>
+          <input type="color" id="selector-color" value="#2F80ED">
+        </label>
+      </div>
+    </section>
+
+    <!-- Vistas previas: se dibujan en dos canvas -->
+    <section class="tarjeta">
+      <div class="vistas">
+        <div class="vista">
+          <h2>192 × 192</h2>
+          <div class="marco"><canvas id="lienzo-192" width="192" height="192"></canvas></div>
+        </div>
+
+        <div class="vista">
+          <h2>512 × 512</h2>
+          <div class="marco"><canvas id="lienzo-512" width="512" height="512"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Descargas -->
+    <section class="botones">
+      <button type="button" id="btn-descargar-192">Descargar icono-192.png</button>
+      <button type="button" id="btn-descargar-512">Descargar icono-512.png</button>
+    </section>
+  </main>
+
+  <script>
+    /* ---------- 1. ELEMENTOS Y AJUSTES ---------- */
+
+    const campoEmoji = document.getElementById("campo-emoji");
+    const selectorColor = document.getElementById("selector-color");
+    const textoColor = document.getElementById("texto-color");
+    const lienzo192 = document.getElementById("lienzo-192");
+    const lienzo512 = document.getElementById("lienzo-512");
+
+    // Margen de seguridad: el dibujo nunca ocupa el 10 % exterior de cada lado
+    const MARGEN_SEGURIDAD = 0.10;
+
+    // Qué tan redondeadas son las esquinas (proporción del tamaño del icono)
+    const RADIO_ESQUINAS = 0.22;
+
+    // Fuentes de emoji de cada sistema, con una genérica de respaldo
+    const FUENTE_EMOJI = '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+
+    /* ---------- 2. DIBUJO ---------- */
+
+    // Traza un rectángulo con esquinas redondeadas (sin depender de roundRect)
+    function trazarRectanguloRedondeado(contexto, x, y, ancho, alto, radio) {
+      contexto.beginPath();
+      contexto.moveTo(x + radio, y);
+      contexto.arcTo(x + ancho, y, x + ancho, y + alto, radio);
+      contexto.arcTo(x + ancho, y + alto, x, y + alto, radio);
+      contexto.arcTo(x, y + alto, x, y, radio);
+      contexto.arcTo(x, y, x + ancho, y, radio);
+      contexto.closePath();
+    }
+
+    // Dibuja el icono completo en un canvas: fondo redondeado + emoji centrado
+    function dibujarIcono(lienzo, emoji, color) {
+      const tamano = lienzo.width;
+      const contexto = lienzo.getContext("2d");
+
+      // Fondo de color con esquinas redondeadas (las esquinas quedan transparentes)
+      contexto.clearRect(0, 0, tamano, tamano);
+      contexto.fillStyle = color;
+      trazarRectanguloRedondeado(contexto, 0, 0, tamano, tamano, tamano * RADIO_ESQUINAS);
+      contexto.fill();
+
+      if (emoji === "") return;
+
+      // Zona segura: el cuadrado central que deja el 10 % de margen en cada lado
+      const zonaSegura = tamano * (1 - 2 * MARGEN_SEGURIDAD);
+
+      // Se mide el emoji con una fuente de prueba para saber cuánto ocupa
+      const tamanoPrueba = 100;
+      contexto.font = tamanoPrueba + "px " + FUENTE_EMOJI;
+      contexto.textAlign = "left";
+      contexto.textBaseline = "alphabetic";
+      const medida = contexto.measureText(emoji);
+
+      let izquierda = medida.actualBoundingBoxLeft;
+      let derecha = medida.actualBoundingBoxRight;
+      let arriba = medida.actualBoundingBoxAscent;
+      let abajo = medida.actualBoundingBoxDescent;
+
+      // Si el navegador no entrega esas medidas, se estiman con el ancho del texto
+      if (!(izquierda + derecha > 0 && arriba + abajo > 0)) {
+        izquierda = 0;
+        derecha = medida.width;
+        arriba = tamanoPrueba * 0.8;
+        abajo = tamanoPrueba * 0.2;
+      }
+
+      // Escala para que el emoji entre justo en la zona segura (por ancho o por alto)
+      const escala = Math.min(
+        zonaSegura / (izquierda + derecha),
+        zonaSegura / (arriba + abajo)
+      );
+
+      // Posición para que el centro del dibujo coincida con el centro del icono
+      const x = tamano / 2 - ((derecha - izquierda) / 2) * escala;
+      const y = tamano / 2 + ((arriba - abajo) / 2) * escala;
+
+      contexto.font = tamanoPrueba * escala + "px " + FUENTE_EMOJI;
+      contexto.fillText(emoji, x, y);
+    }
+
+    // Redibuja las dos vistas con los valores actuales (cambios en vivo)
+    function actualizarVistas() {
+      const emoji = campoEmoji.value.trim();
+      const color = selectorColor.value;
+
+      textoColor.textContent = color.toUpperCase();
+      dibujarIcono(lienzo192, emoji, color);
+      dibujarIcono(lienzo512, emoji, color);
+    }
+
+    campoEmoji.addEventListener("input", actualizarVistas);
+    selectorColor.addEventListener("input", actualizarVistas);
+
+    /* ---------- 3. DESCARGA ---------- */
+
+    // Descarga el contenido de un canvas como PNG con el nombre indicado
+    function descargarIcono(lienzo, nombreArchivo) {
+      const enlace = document.createElement("a");
+      enlace.href = lienzo.toDataURL("image/png");
+      enlace.download = nombreArchivo;
+
+      document.body.appendChild(enlace);
+      enlace.click();
+      document.body.removeChild(enlace);
+    }
+
+    document.getElementById("btn-descargar-192").addEventListener("click", function () {
+      descargarIcono(lienzo192, "icono-192.png");
+    });
+
+    document.getElementById("btn-descargar-512").addEventListener("click", function () {
+      descargarIcono(lienzo512, "icono-512.png");
+    });
+
+    /* ---------- 4. INICIO ---------- */
+
+    actualizarVistas();
+  </script>
+</body>
+</html>

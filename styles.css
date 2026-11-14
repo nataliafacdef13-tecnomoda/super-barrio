@@ -1,0 +1,327 @@
+/* ==========================================================
+   Súper Barrio - Estilos del sistema de stock
+   Mobile first: base para celular, ajustes desde 768 px
+   ========================================================== */
+
+/* 1. TIPOGRAFÍAS (Google Fonts) */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap");
+
+/* 2. VARIABLES DE COLOR Y MEDIDAS */
+:root {
+  /* Color principal (amarillo mostaza) */
+  --color-principal: #D99A00;
+  --color-principal-oscuro: #B07C00;
+  --color-principal-suave: #FFF4D6;
+
+  /* Colores de estado del stock */
+  --color-normal: #2E9E5B;       /* verde: stock normal */
+  --color-bajo: #F28C28;         /* naranja: bajo el mínimo */
+  --color-sin-stock: #D93025;    /* rojo: sin stock */
+
+  /* Fondos, texto y bordes */
+  --color-fondo: #F5F6F7;        /* gris muy claro */
+  --color-tarjeta: #FFFFFF;
+  --color-texto: #1F2933;
+  --color-texto-suave: #6B7280;
+  --color-borde: #E5E7EB;
+
+  /* Sombras, bordes redondeados y tipografías */
+  --sombra-suave: 0 2px 8px rgba(31, 41, 51, 0.08);
+  --sombra-elevada: 0 6px 16px rgba(31, 41, 51, 0.16);
+  --radio: 14px;
+  --fuente-titulos: "Poppins", system-ui, sans-serif;
+  --fuente-texto: "Inter", system-ui, sans-serif;
+}
+
+/* 3. BASE: reinicio y estilos generales */
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+/* Hace que el atributo "hidden" siempre oculte (lo usa el menú) */
+[hidden] {
+  display: none !important;
+}
+
+body {
+  font-family: var(--fuente-texto);
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  line-height: 1.5;
+}
+
+h1, h2, h3 {
+  font-family: var(--fuente-titulos);
+}
+
+h2 {
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+}
+
+/* 4. ENCABEZADO: nombre del sistema y botones de datos */
+#encabezado {
+  background: var(--color-principal);
+  color: var(--color-texto);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: var(--sombra-suave);
+}
+
+#encabezado h1 {
+  font-size: 1.5rem;
+}
+
+#encabezado h1::before {
+  content: "🛒 ";
+}
+
+#acciones-datos {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* 5. BOTONES: estilo general con hover (color + elevación) */
+button {
+  font-family: var(--fuente-texto);
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.6rem 1.1rem;
+  border: none;
+  border-radius: 10px;
+  background: var(--color-principal);
+  color: var(--color-texto);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+  background: var(--color-principal-oscuro);
+  color: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-elevada);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Botones de exportar/importar: blancos sobre el encabezado, con emojis */
+#acciones-datos button {
+  background: var(--color-tarjeta);
+}
+
+#acciones-datos button:hover {
+  background: var(--color-texto);
+  color: #FFFFFF;
+}
+
+#btn-exportar::before { content: "📤 "; }
+#btn-importar::before { content: "📥 "; }
+
+/* Botón para acciones peligrosas (ej: eliminar) */
+.boton-peligro {
+  background: var(--color-sin-stock);
+  color: #FFFFFF;
+}
+
+.boton-peligro:hover {
+  background: #A8231A;
+}
+
+/* 6. MENÚ PRINCIPAL: pestañas con scroll horizontal en celular */
+#menu {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-tarjeta);
+  border-bottom: 1px solid var(--color-borde);
+  overflow-x: auto;
+}
+
+#menu button {
+  background: var(--color-fondo);
+  white-space: nowrap;
+}
+
+/* Emojis de cada opción del menú */
+#menu button[data-seccion="productos"]::before   { content: "📦 "; }
+#menu button[data-seccion="movimientos"]::before { content: "🔄 "; }
+#menu button[data-seccion="alertas"]::before     { content: "🔔 "; }
+#menu button[data-seccion="categorias"]::before  { content: "🏷️ "; }
+
+/* Opción seleccionada (la clase "activo" la agregará JS) */
+#menu button.activo {
+  background: var(--color-principal);
+}
+
+/* Contador de alertas: círculo rojo con número */
+#contador-alertas {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  padding: 0 0.3rem;
+  margin-left: 0.25rem;
+  border-radius: 50%;
+  background: var(--color-sin-stock);
+  color: #FFFFFF;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* 7. CONTENIDO PRINCIPAL: centrado y con ancho máximo */
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* 8. FORMULARIOS COMO TARJETAS (1 columna en celular) */
+form,
+#filtros-productos {
+  background: var(--color-tarjeta);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-suave);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-texto-suave);
+}
+
+input,
+select,
+textarea {
+  font-family: var(--fuente-texto);
+  font-size: 1rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-borde);
+  border-radius: 10px;
+  background: #FFFFFF;
+  color: var(--color-texto);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--color-principal);
+  border-color: var(--color-principal);
+}
+
+/* 9. TABLAS: tarjeta con scroll horizontal en celular */
+table {
+  display: block;
+  overflow-x: auto;
+  background: var(--color-tarjeta);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-suave);
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--color-borde);
+}
+
+th {
+  font-family: var(--fuente-titulos);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--color-principal-suave);
+}
+
+tbody tr:hover {
+  background: var(--color-fondo);
+}
+
+/* 10. LISTAS (alertas y categorías): cada elemento es una tarjeta */
+ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+li {
+  background: var(--color-tarjeta);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-suave);
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Alertas: borde de color según la gravedad */
+li.alerta-bajo      { border-left: 6px solid var(--color-bajo); }
+li.alerta-sin-stock { border-left: 6px solid var(--color-sin-stock); }
+
+/* 11. INDICADORES DE ESTADO DEL STOCK (se aplican con clases desde JS) */
+.estado {
+  font-weight: 600;
+}
+
+.estado-normal    { color: var(--color-normal); }
+.estado-bajo      { color: var(--color-bajo); }
+.estado-sin-stock { color: var(--color-sin-stock); }
+
+.estado-normal::before    { content: "🟢 "; }
+.estado-bajo::before      { content: "🟠 "; }
+.estado-sin-stock::before { content: "🔴 "; }
+
+/* 12. ESCRITORIO / TABLET: desde 768 px, dos columnas */
+@media (min-width: 768px) {
+  #encabezado {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+  }
+
+  #menu {
+    padding: 0.75rem 2rem;
+  }
+
+  main {
+    padding: 1.5rem 2rem;
+  }
+
+  /* Formularios y filtros en dos columnas */
+  form,
+  #filtros-productos {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* Elementos que ocupan las dos columnas */
+  form button[type="submit"],
+  #movimiento-observacion,
+  label:has(#movimiento-observacion),
+  #buscador-productos {
+    grid-column: 1 / -1;
+  }
+
+  /* Listas en dos columnas */
+  ul {
+    grid-template-columns: 1fr 1fr;
+  }
+}
