@@ -1,7 +1,7 @@
 // sw.js - Service worker de Súper Barrio (hace que la app funcione sin internet)
 
 // Versión de la caché: si cambiás los archivos de la app, cambiá este valor (ej: "v2")
-const VERSION = "v1";
+const VERSION = "v2";
 
 // Prefijo común de las cachés de esta app (sirve para no tocar cachés de otras apps)
 const PREFIJO_CACHE = "super-barrio-";
@@ -13,8 +13,6 @@ const NOMBRE_CACHE = PREFIJO_CACHE + VERSION;
 const ARCHIVOS = [
   "./",
   "./index.html",
-  "./styles.css",
-  "./app.js",
   "./manifest.json",
   "./icono-192.png",
   "./icono-512.png"
@@ -26,8 +24,13 @@ self.addEventListener("install", function (evento) {
   evento.waitUntil(
     // Abre (o crea) la caché de esta versión
     caches.open(NOMBRE_CACHE).then(function (cache) {
-      // Descarga y guarda todos los archivos de la lista
-      return cache.addAll(ARCHIVOS);
+      // Descarga y guarda todos los archivos de la lista; con cache: "reload" cada uno se
+      // pide a internet sin usar la copia que el navegador tenga guardada por su cuenta
+      return cache.addAll(
+        ARCHIVOS.map(function (archivo) {
+          return new Request(archivo, { cache: "reload" });
+        })
+      );
     })
   );
 });

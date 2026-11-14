@@ -76,6 +76,37 @@ h2 {
   margin-bottom: 1rem;
 }
 
+/* Avisos de arriba (conexión y versión nueva): barras finas, fijas arriba de todo */
+#avisos {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+
+.aviso {
+  padding: 0.4rem 1rem;
+  background: var(--color-principal-suave);
+  border-bottom: 1px solid var(--color-principal);
+  color: var(--color-texto);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+#aviso-conexion::before {
+  content: "📴 ";
+}
+
+/* El aviso de versión nueva usa el color principal para que se note más */
+#aviso-version {
+  background: var(--color-principal);
+  font-weight: 600;
+}
+
+#aviso-version::before {
+  content: "✨ ";
+}
+
 /* 4. ENCABEZADO: nombre del sistema y botones de datos */
 #encabezado {
   background: var(--color-principal);
@@ -524,6 +555,18 @@ li.alerta-sin-stock { border-left: 6px solid var(--color-sin-stock); }
   </style>
 </head>
 <body>
+
+  <!-- AVISO DE CONEXIÓN: aparece solo cuando el dispositivo pierde internet -->
+  <div id="avisos">
+    <div id="aviso-conexion" class="aviso" role="status" aria-live="polite" hidden>
+      Sin conexión: tus datos se siguen guardando en este celular
+    </div>
+
+    <!-- AVISO DE VERSIÓN NUEVA: aparece cuando se instala un service worker nuevo -->
+    <div id="aviso-version" class="aviso" role="status" aria-live="polite" hidden>
+      Hay una versión nueva: cerrá y volvé a abrir la app
+    </div>
+  </div>
 
   <!-- ENCABEZADO: nombre del sistema y botones de exportar / importar -->
   <header id="encabezado">
@@ -1681,14 +1724,14 @@ const botonExportar = document.getElementById("btn-exportar");
 const botonImportar = document.getElementById("btn-importar");
 const archivoImportar = document.getElementById("archivo-importar");
 
-// EXPORTAR: descarga un archivo stock.json con todos los datos
-function exportarDatos() {
+// Convierte los datos en texto JSON legible (sangría de 2 espacios)
+function crearTextoExportacion() {
   const datos = { categorias, productos, movimientos };
+  return JSON.stringify(datos, null, 2);
+}
 
-  // JSON.stringify con sangría de 2 espacios para que sea legible
-  const texto = JSON.stringify(datos, null, 2);
-
-  // Se crea un archivo en memoria (Blob) y un enlace temporal para descargarlo
+// DESCARGA: baja el archivo stock.json con un Blob y un enlace temporal
+function descargarArchivoStock(texto) {
   const archivo = new Blob([texto], { type: "application/json" });
   const direccion = URL.createObjectURL(archivo);
 
@@ -1701,6 +1744,35 @@ function exportarDatos() {
   document.body.removeChild(enlace);
 
   URL.revokeObjectURL(direccion); // Libera la memoria usada por el enlace temporal
+}
+
+// Pantalla táctil = celular o tablet (en una computadora se descarga directamente)
+function esDispositivoTactil() {
+  return window.matchMedia("(pointer: coarse)").matches;
+}
+
+// EXPORTAR: en celulares que lo permitan ofrece compartir el archivo (correo, Drive, etc.);
+// si no se puede compartir, lo descarga como siempre
+async function exportarDatos() {
+  const texto = crearTextoExportacion();
+
+  try {
+    if (esDispositivoTactil() && navigator.share && navigator.canShare) {
+      const archivo = new File([texto], "stock.json", { type: "application/json" });
+
+      // canShare confirma que este navegador acepta compartir ese tipo de archivo
+      if (navigator.canShare({ files: [archivo] })) {
+        await navigator.share({ files: [archivo], title: "Stock de Súper Barrio" });
+        return; // Se compartió: no hace falta descargar
+      }
+    }
+  } catch (error) {
+    // Si la persona cerró el menú de compartir, no se hace nada más
+    if (error.name === "AbortError") return;
+    // Con cualquier otro error se sigue y se descarga
+  }
+
+  descargarArchivoStock(texto);
 }
 
 // Comprueba que los datos importados tengan las tres listas y el formato esperado.
@@ -1893,7 +1965,68 @@ menuPrincipal.addEventListener("click", function (evento) {
   }
 });
 
-/* ---------- 8. INICIO DE LA APLICACIÓN ---------- */
+/* ---------- 8. AVISO DE CONEXIÓN ---------- */
+
+const avisoConexion = document.getElementById("aviso-conexion");
+
+// Muestra el aviso si no hay internet y lo oculta cuando vuelve
+function actualizarAvisoConexion() {
+  avisoConexion.hidden = navigator.onLine;
+}
+
+// El navegador avisa cuando se pierde o vuelve la conexión
+window.addEventListener("offline", actualizarAvisoConexion);
+window.addEventListener("online", actualizarAvisoConexion);
+
+// Revisa el estado apenas se abre la app (puede abrirse ya sin conexión)
+actualizarAvisoConexion();
+
+/* ---------- 9. SERVICE WORKER Y AVISO DE VERSIÓN NUEVA ---------- */
+
+const avisoVersion = document.getElementById("aviso-version");
+
+// Muestra el aviso de que hay una versión nueva esperando
+function mostrarAvisoVersionNueva() {
+  avisoVersion.hidden = false;
+}
+
+// Registra el service worker solo si el navegador lo admite
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("./sw.js").then(function (registro) {
+
+      // Si una versión nueva ya quedó esperando en una visita anterior, se avisa enseguida.
+      // "controller" existe solo si la app ya estaba instalada (no es la primera vez)
+      if (registro.waiting && navigator.serviceWorker.controller) {
+        mostrarAvisoVersionNueva();
+      }
+
+      // El navegador encontró un sw.js distinto y empezó a instalarlo
+      registro.addEventListener("updatefound", function () {
+        const trabajadorNuevo = registro.installing;
+
+        trabajadorNuevo.addEventListener("statechange", function () {
+          // "installed" = terminó de guardar los archivos nuevos y queda esperando.
+          // Si ya había un service worker controlando la app, es una actualización
+          // (en la primera instalación no hay nada que avisar)
+          if (trabajadorNuevo.state === "installed" && navigator.serviceWorker.controller) {
+            mostrarAvisoVersionNueva();
+          }
+        });
+      });
+
+      // Cuando la app vuelve a primer plano, busca si hay una versión nueva
+      // (en el celular la app puede pasar días abierta en segundo plano)
+      document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) {
+          registro.update();
+        }
+      });
+    });
+  });
+}
+
+/* ---------- 10. INICIO DE LA APLICACIÓN ---------- */
 
 cargarDatos();
 mostrarCategorias();
